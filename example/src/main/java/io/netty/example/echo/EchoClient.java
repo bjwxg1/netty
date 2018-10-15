@@ -51,13 +51,13 @@ public final class EchoClient {
             sslCtx = null;
         }
 
-        // Configure the client.
+        //创建NioEventLoopGroup
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
-            b.group(group)
-             .channel(NioSocketChannel.class)
-             .option(ChannelOption.TCP_NODELAY, true)
+            b.group(group)//设置workGroup
+             .channel(NioSocketChannel.class)//设置channel,然后通过工厂创建Channel
+             .option(ChannelOption.TCP_NODELAY, true)//设置option
              .handler(new ChannelInitializer<SocketChannel>() {
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
@@ -65,12 +65,11 @@ public final class EchoClient {
                      if (sslCtx != null) {
                          p.addLast(sslCtx.newHandler(ch.alloc(), HOST, PORT));
                      }
-                     //p.addLast(new LoggingHandler(LogLevel.INFO));
                      p.addLast(new EchoClientHandler());
                  }
-             });
+             });//设置handler
 
-            // Start the client.
+            //建立到服务器端的连接
             ChannelFuture f = b.connect(HOST, PORT).sync();
 
             // Wait until the connection is closed.

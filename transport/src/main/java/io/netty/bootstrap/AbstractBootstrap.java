@@ -86,6 +86,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             throw new IllegalStateException("group set already");
         }
         this.group = group;
+        //返回自己，便于链式处理
         return self();
     }
 
@@ -99,10 +100,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * You either use this or {@link #channelFactory(io.netty.channel.ChannelFactory)} if your
      * {@link Channel} implementation has no no-args constructor.
      */
-    public B channel(Class<? extends C> channelClass) {
+    public B  channel(Class<? extends C> channelClass) {
         if (channelClass == null) {
             throw new NullPointerException("channelClass");
         }
+        //设置channelFactory，后续通过channelFactory创建channel
         return channelFactory(new ReflectiveChannelFactory<C>(channelClass));
     }
 
@@ -317,6 +319,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            //调用channelFactory创建channel
             channel = channelFactory.newChannel();
             init(channel);
         } catch (Throwable t) {
