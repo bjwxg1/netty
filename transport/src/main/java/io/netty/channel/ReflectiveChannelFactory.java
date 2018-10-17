@@ -22,9 +22,7 @@ import io.netty.util.internal.StringUtil;
  * A {@link ChannelFactory} that instantiates a new {@link Channel} by invoking its default constructor reflectively.
  */
 public class ReflectiveChannelFactory<T extends Channel> implements ChannelFactory<T> {
-
     private final Class<? extends T> clazz;
-
     public ReflectiveChannelFactory(Class<? extends T> clazz) {
         if (clazz == null) {
             throw new NullPointerException("clazz");

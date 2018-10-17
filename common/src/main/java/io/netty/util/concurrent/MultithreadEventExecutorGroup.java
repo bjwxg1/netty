@@ -72,15 +72,17 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             throw new IllegalArgumentException(String.format("nThreads: %d (expected: > 0)", nThreads));
         }
 
+        //设置executor，注意该excutor每次提交任务都新建线程执行任务
         if (executor == null) {
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
-
+        //创建children
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                //具体初始化children
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {
@@ -88,6 +90,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                 throw new IllegalStateException("failed to create a child event loop", e);
             } finally {
                 if (!success) {
+                    //如果其中一个创建失败，循环关闭所有的
                     for (int j = 0; j < i; j ++) {
                         children[j].shutdownGracefully();
                     }
@@ -96,6 +99,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                         EventExecutor e = children[j];
                         try {
                             while (!e.isTerminated()) {
+                                //等待executor关闭
                                 e.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
                             }
                         } catch (InterruptedException interrupted) {
@@ -108,8 +112,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        //设置chooser
         chooser = chooserFactory.newChooser(children);
 
+        //创建terminationListener
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
             public void operationComplete(Future<Object> future) throws Exception {
@@ -119,6 +125,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         };
 
+        //添加terminationListener
         for (EventExecutor e: children) {
             e.terminationFuture().addListener(terminationListener);
         }
