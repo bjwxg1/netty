@@ -79,6 +79,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             AtomicReferenceFieldUpdater.newUpdater(
                     SingleThreadEventExecutor.class, ThreadProperties.class, "threadProperties");
 
+    //Task队列
     private final Queue<Runnable> taskQueue;
 
     private volatile Thread thread;
@@ -271,6 +272,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     private boolean fetchFromScheduledTaskQueue() {
+        //从delayedTaskQueue中获取已经超时的task添加到taskQueue(非IO任务队列)
         long nanoTime = AbstractScheduledEventExecutor.nanoTime();
         Runnable scheduledTask  = pollScheduledTask(nanoTime);
         while (scheduledTask != null) {
@@ -351,7 +353,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         boolean ranAtLeastOne = false;
 
         do {
+            //从delayedTaskQueue中将过期的任务获取添加到taskQueue(非IO任务队列)
             fetchedAll = fetchFromScheduledTaskQueue();
+            //运行taskQueue中的任务
             if (runAllTasksFrom(taskQueue)) {
                 ranAtLeastOne = true;
             }
@@ -755,6 +759,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         return isTerminated();
     }
 
+    //执行task
     @Override
     public void execute(Runnable task) {
         if (task == null) {
@@ -762,8 +767,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
 
         boolean inEventLoop = inEventLoop();
+        //将任务添加到taskQueue
         addTask(task);
         if (!inEventLoop) {
+            //启动线程
             startThread();
             if (isShutdown() && removeTask(task)) {
                 reject();
@@ -855,7 +862,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 
+    //启动线程
     private void startThread() {
+        //如果线程没有启动，则设置线程state状态为ST_STARTED，并启动线程
         if (state == ST_NOT_STARTED) {
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 try {
@@ -870,6 +879,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
+        //创建新线程执行
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -879,8 +889,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 }
 
                 boolean success = false;
+                //更新执行时间
                 updateLastExecutionTime();
                 try {
+                    //调用run方法
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

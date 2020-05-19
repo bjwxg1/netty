@@ -52,7 +52,7 @@ public final class EchoClient {
         }
 
         //创建NioEventLoopGroup
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap b = new Bootstrap();
             b.group(group)//设置workGroup
@@ -67,7 +67,7 @@ public final class EchoClient {
                      }
                      p.addLast(new EchoClientHandler());
                  }
-             });//设置handler
+             });//设置handler(负责编码、解码业务处理)
 
             //建立到服务器端的连接
             ChannelFuture f = b.connect(HOST, PORT).sync();

@@ -381,10 +381,15 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     }
 
     @Override
+    //进行register
     protected void doRegister() throws Exception {
         boolean selected = false;
         for (;;) {
             try {
+                //不同的Channel支持不同的ops
+                //SocketChannel支持OP_READ(1<<0),OP_WRITE(1 << 2),OP_OP_CONNECT(1 << 3)
+                //ServerSocketChannel支持OP_ACCEPT(1 << 4)
+                //0在(ops & ~channel().validOps()) != 0会返回0，但起不到任何作用
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {

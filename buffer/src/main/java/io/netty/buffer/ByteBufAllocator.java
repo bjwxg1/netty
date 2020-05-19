@@ -19,6 +19,7 @@ package io.netty.buffer;
  * Implementations are responsible to allocate buffers. Implementations of this interface are expected to be
  * thread-safe.
  */
+//用户创建ByteBuf
 public interface ByteBufAllocator {
 
     ByteBufAllocator DEFAULT = ByteBufUtil.DEFAULT_ALLOCATOR;

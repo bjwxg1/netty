@@ -33,8 +33,8 @@ import java.lang.annotation.Target;
  * <p>
  * {@link ChannelHandler} itself does not provide many methods, but you usually have to implement one of its subtypes:
  * <ul>
- * <li>{@link ChannelInboundHandler} to handle inbound I/O events, and</li>
- * <li>{@link ChannelOutboundHandler} to handle outbound I/O operations.</li>
+ * <li>{@link ChannelInboundHandler} to handle inbound I/O events, and</li>   InBound是处理IO事件
+ * <li>{@link ChannelOutboundHandler} to handle outbound I/O operations.</li> OutBound是处理IO操作
  * </ul>
  * </p>
  * <p>

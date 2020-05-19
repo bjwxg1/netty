@@ -207,12 +207,14 @@ import java.util.NoSuchElementException;
  * pipeline.addLast(group, "handler", new MyBusinessLogicHandler());
  * </pre>
  *
- * <h3>Thread safety</h3>
+ pre* <h3>Thread safety</h3>
  * <p>
  * A {@link ChannelHandler} can be added or removed at any time because a {@link ChannelPipeline} is thread safe.
  * For example, you can insert an encryption handler when sensitive information is about to be exchanged, and remove it
  * after the exchange.
  */
+//由ChannelHandler组成的双向链表，主要用于处理和拦截对象的inbound和outBound操作；
+//每个Channel都有自己的ChannelPipeline
 public interface ChannelPipeline
         extends ChannelInboundInvoker, ChannelOutboundInvoker, Iterable<Entry<String, ChannelHandler>> {
 

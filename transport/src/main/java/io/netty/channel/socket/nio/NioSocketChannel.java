@@ -69,6 +69,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
         }
     }
 
+    //SocketChannel的配置信息
     private final SocketChannelConfig config;
 
     /**

@@ -30,6 +30,7 @@ import java.net.NetworkInterface;
  *
  * @param <T>   the type of the value which is valid for the {@link ChannelOption}
  */
+//TODO 梳理各种Options
 public class ChannelOption<T> extends AbstractConstant<ChannelOption<T>> {
 
     private static final ConstantPool<ChannelOption<Object>> pool = new ConstantPool<ChannelOption<Object>>() {

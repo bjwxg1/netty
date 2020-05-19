@@ -39,6 +39,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
+    //context的两个指针
     volatile AbstractChannelHandlerContext next;
     volatile AbstractChannelHandlerContext prev;
 
@@ -63,6 +64,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
      */
     private static final int INIT = 0;
 
+    //标识是
     private final boolean inbound;
     private final boolean outbound;
     private final DefaultChannelPipeline pipeline;
@@ -931,6 +933,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         return false;
     }
 
+    //返回链表中的下一个InBoundHandlerContext
     private AbstractChannelHandlerContext findContextInbound() {
         AbstractChannelHandlerContext ctx = this;
         do {
@@ -939,6 +942,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         return ctx;
     }
 
+    //返回链表中的前一个一个InBoundHandlerContext
     private AbstractChannelHandlerContext findContextOutbound() {
         AbstractChannelHandlerContext ctx = this;
         do {

@@ -47,8 +47,10 @@ import java.util.Map;
  * <p>When not used in a {@link ServerBootstrap} context, the {@link #bind()} methods are useful for connectionless
  * transports such as datagram (UDP).</p>
  */
+//工厂类，帮助创建Channel。
 public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C extends Channel> implements Cloneable {
 
+    //parent Group（Boss线程池）
     volatile EventLoopGroup group;
     @SuppressWarnings("deprecation")
     private volatile ChannelFactory<? extends C> channelFactory;
@@ -100,6 +102,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * You either use this or {@link #channelFactory(io.netty.channel.ChannelFactory)} if your
      * {@link Channel} implementation has no no-args constructor.
      */
+    //用于根据ChannelClass创建对应的ChannelFactory，后续用于创建Channel
     public B  channel(Class<? extends C> channelClass) {
         if (channelClass == null) {
             throw new NullPointerException("channelClass");
@@ -173,6 +176,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (option == null) {
             throw new NullPointerException("option");
         }
+        //value为null会移除配置
         if (value == null) {
             synchronized (options) {
                 options.remove(option);
@@ -321,6 +325,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         try {
             //调用channelFactory创建channel
             channel = channelFactory.newChannel();
+            //初始化channel
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -333,6 +338,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
+        //将channel注册到parent eventLoopGroup
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

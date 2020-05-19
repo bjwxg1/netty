@@ -55,15 +55,19 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private static final NotYetConnectedException FLUSH0_NOT_YET_CONNECTED_EXCEPTION = ThrowableUtil.unknownStackTrace(
             new NotYetConnectedException(), AbstractUnsafe.class, "flush0()");
 
+    //父channel
     private final Channel parent;
     private final ChannelId id;
     private final Unsafe unsafe;
+    //和channel关联的pipeline
     private final DefaultChannelPipeline pipeline;
     private final VoidChannelPromise unsafeVoidPromise = new VoidChannelPromise(this, false);
     private final CloseFuture closeFuture = new CloseFuture(this);
 
+    //和channel绑定的地址
     private volatile SocketAddress localAddress;
     private volatile SocketAddress remoteAddress;
+    //channel注册的EventLoop
     private volatile EventLoop eventLoop;
     private volatile boolean registered;
     private boolean closeInitiated;
@@ -465,11 +469,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
             if (!isCompatible(eventLoop)) {
-                promise.setFailure(
-                        new IllegalStateException("incompatible event loop type: " + eventLoop.getClass().getName()));
+                promise.setFailure(new IllegalStateException("incompatible event loop type: " + eventLoop.getClass().getName()));
                 return;
             }
 
+            //设置和此Channel关联的EventLop
             AbstractChannel.this.eventLoop = eventLoop;
 
             if (eventLoop.inEventLoop()) {
@@ -497,6 +501,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
+                //
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
