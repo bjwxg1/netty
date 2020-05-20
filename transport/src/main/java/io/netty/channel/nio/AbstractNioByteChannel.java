@@ -262,6 +262,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             writeSpinCount -= doWriteInternal(in, msg);
         } while (writeSpinCount > 0);
 
+        //TODO
         incompleteWrite(writeSpinCount < 0);
     }
 

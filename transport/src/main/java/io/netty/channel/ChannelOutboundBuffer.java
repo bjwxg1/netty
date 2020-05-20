@@ -49,6 +49,9 @@ import static java.lang.Math.min;
  * </ul>
  * </p>
  */
+//每个ChannelSocket的Unsafe都有一个绑定的ChannelOutboundBuffer，
+//Netty向站外输出数据的过程统一通过ChannelOutboundBuffer类进行封装，目的是为了提高网络的吞吐量；
+//在外面调用write的时候，数据并没有写到Socket，而是写到了ChannelOutboundBuffer，当调用flush的时候，才真正的向Socket写出。
 public final class ChannelOutboundBuffer {
     // Assuming a 64-bit JVM:
     //  - 16 bytes object header
@@ -72,14 +75,17 @@ public final class ChannelOutboundBuffer {
     private final Channel channel;
 
     // Entry(flushedEntry) --> ... Entry(unflushedEntry) --> ... Entry(tailEntry)
-    //
     // The Entry that is the first in the linked-list structure that was flushed
+    //OutBoundBuffer中第一个被flush的元素
     private Entry flushedEntry;
     // The Entry which is the first unflushed in the linked-list structure
+    //OutBoundBuffer中第一个未被被flush的元素
     private Entry unflushedEntry;
-    // The Entry which represents the tail of the buffer
+    //The Entry which represents the tail of the buffer
+    //utBoundBuffer中尾部元素
     private Entry tailEntry;
     // The number of flushed entries that are not written yet
+    //已经flush但没有有写入到socket的元素
     private int flushed;
 
     private int nioBufferCount;
@@ -91,12 +97,14 @@ public final class ChannelOutboundBuffer {
             AtomicLongFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
 
     @SuppressWarnings("UnusedDeclaration")
+    //ChannelOutBoundBuf中待发送数据总量
     private volatile long totalPendingSize;
 
     private static final AtomicIntegerFieldUpdater<ChannelOutboundBuffer> UNWRITABLE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "unwritable");
 
     @SuppressWarnings("UnusedDeclaration")
+    //ChannelOutBoundBuffer是否可以写入新数据
     private volatile int unwritable;
 
     private volatile Runnable fireChannelWritabilityChangedTask;

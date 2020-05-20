@@ -85,6 +85,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 // See:
                 // - https://github.com/netty/netty/issues/2327
                 // - https://github.com/netty/netty/issues/1764
+                //如果容量不够，进行扩容[先扩容在复制]
                 buffer = expandCumulation(alloc, cumulation, in.readableBytes());
             } else {
                 buffer = cumulation;
@@ -133,10 +134,13 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
     private static final byte STATE_CALLING_CHILD_DECODE = 1;
     private static final byte STATE_HANDLER_REMOVED_PENDING = 2;
 
+    //所有累计的字节流数据
     ByteBuf cumulation;
+    //
     private Cumulator cumulator = MERGE_CUMULATOR;
     private boolean singleDecode;
     private boolean decodeWasNull;
+    //是否是第一次read数据
     private boolean first;
     /**
      * A bitmask where the bits are defined as
@@ -252,27 +256,36 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        //判断msg是否是ByteBuf类型
         if (msg instanceof ByteBuf) {
+            //从对象池获取List
             CodecOutputList out = CodecOutputList.newInstance();
             try {
                 ByteBuf data = (ByteBuf) msg;
+                //判断cumulation==null;如果为真说明第一次读取数据
                 first = cumulation == null;
                 if (first) {
+                    //给cumulation复制
                     cumulation = data;
                 } else {
+                    //将msg追加到原有的cumulation
                     cumulation = cumulator.cumulate(ctx.alloc(), cumulation, data);
                 }
+                //进行解码操作
                 callDecode(ctx, cumulation, out);
             } catch (DecoderException e) {
                 throw e;
             } catch (Exception e) {
                 throw new DecoderException(e);
             } finally {
+                //cumulation不为空，且没有数据可读
                 if (cumulation != null && !cumulation.isReadable()) {
                     numReads = 0;
                     cumulation.release();
                     cumulation = null;
-                } else if (++ numReads >= discardAfterReads) {
+                }
+                //如果超过16次就压缩累积区，回收空间
+                else if (++ numReads >= discardAfterReads) {
                     // We did enough reads already try to discard some bytes so we not risk to see a OOME.
                     // See https://github.com/netty/netty/issues/4275
                     numReads = 0;
@@ -406,9 +419,10 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
      */
     protected void callDecode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         try {
+            //如果ByteBuf可读，循环进行操作
             while (in.isReadable()) {
                 int outSize = out.size();
-
+                //如果outSize大于0，说明已经有decode出了信息
                 if (outSize > 0) {
                     fireChannelRead(ctx, out, outSize);
                     out.clear();
@@ -484,6 +498,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
      */
     final void decodeRemovalReentryProtection(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
             throws Exception {
+        //设置状态为STATE_CALLING_CHILD_DECODE
         decodeState = STATE_CALLING_CHILD_DECODE;
         try {
             decode(ctx, in, out);
