@@ -161,15 +161,16 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * @see #connect()
      */
     private ChannelFuture doResolveAndConnect(final SocketAddress remoteAddress, final SocketAddress localAddress) {
-        //初始化channel并注册
+        //初始化channel并注册到EventLoopGroup
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
 
-        //Task是否完成
+        //注册操作是否完成
         if (regFuture.isDone()) {
             if (!regFuture.isSuccess()) {
                 return regFuture;
             }
+            //注册完成，进行连接操作
             return doResolveAndConnect0(channel, remoteAddress, localAddress, channel.newPromise());
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.

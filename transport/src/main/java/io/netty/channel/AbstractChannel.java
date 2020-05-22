@@ -55,9 +55,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private static final NotYetConnectedException FLUSH0_NOT_YET_CONNECTED_EXCEPTION = ThrowableUtil.unknownStackTrace(
             new NotYetConnectedException(), AbstractUnsafe.class, "flush0()");
 
-    //父channel
+    //父channel，从ServerSocketChannel中accept的Channel的parent是ServerSocketChannel
     private final Channel parent;
     private final ChannelId id;
+    //Unsafe实例
     private final Unsafe unsafe;
     //和channel关联的pipeline
     private final DefaultChannelPipeline pipeline;
@@ -85,7 +86,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
+        //创建Unsafe对象
         unsafe = newUnsafe();
+        //创建ChannelPipeline
         pipeline = newChannelPipeline();
     }
 
@@ -473,9 +476,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
-            //设置和此Channel关联的EventLop
+            //设置和此Channel关联的EventLoop
             AbstractChannel.this.eventLoop = eventLoop;
-
+            //此处判断执行当前代码的方法线程和eventLoop中的线程是否是统一线程，通常返回false
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {

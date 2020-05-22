@@ -245,21 +245,21 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             if (!promise.setUncancellable() || !ensureOpen(promise)) {
                 return;
             }
-
             try {
                 if (connectPromise != null) {
                     // Already a connect in process.
                     throw new ConnectionPendingException();
                 }
 
+                //判断连接是否活跃
                 boolean wasActive = isActive();
+                //进行连接操作
                 if (doConnect(remoteAddress, localAddress)) {
                     fulfillConnectPromise(promise, wasActive);
                 } else {
                     connectPromise = promise;
                     requestedRemoteAddress = remoteAddress;
-
-                    // Schedule connect timeout.
+                    //创建scheduleTask判断连接是否完成(超时处理)[因为NIO的connect()也是非阻塞的]
                     int connectTimeoutMillis = config().getConnectTimeoutMillis();
                     if (connectTimeoutMillis > 0) {
                         connectTimeoutFuture = eventLoop().schedule(new Runnable() {

@@ -58,6 +58,7 @@ public final class EchoClient {
             b.group(group)//设置workGroup
              .channel(NioSocketChannel.class)//设置channel,然后通过工厂创建Channel
              .option(ChannelOption.TCP_NODELAY, true)//设置option
+             //设置handler在Channel中组成职责链，负责编码、解码和业务处理等[开发中最核心的部分]
              .handler(new ChannelInitializer<SocketChannel>() {
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
@@ -67,15 +68,13 @@ public final class EchoClient {
                      }
                      p.addLast(new EchoClientHandler());
                  }
-             });//设置handler(负责编码、解码业务处理)
-
+             });
             //建立到服务器端的连接
             ChannelFuture f = b.connect(HOST, PORT).sync();
-
-            // Wait until the connection is closed.
+            //等待channel关闭
             f.channel().closeFuture().sync();
         } finally {
-            // Shut down the event loop to terminate all threads.
+            //优雅关闭
             group.shutdownGracefully();
         }
     }
