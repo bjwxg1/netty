@@ -268,7 +268,7 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
     void init(Channel channel) throws Exception {
         //channel在创建的时候有一个DefaultChannelPipeline
         ChannelPipeline p = channel.pipeline();
-        //将handler添加到尾部  TODO
+        //将handler添加到尾部
         p.addLast(config.handler());
 
         //初始化options，并为channel设置options

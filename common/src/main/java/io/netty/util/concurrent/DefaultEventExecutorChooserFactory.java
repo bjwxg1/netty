@@ -24,11 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @UnstableApi
 public final class DefaultEventExecutorChooserFactory implements EventExecutorChooserFactory {
-
     public static final DefaultEventExecutorChooserFactory INSTANCE = new DefaultEventExecutorChooserFactory();
-
     private DefaultEventExecutorChooserFactory() { }
-
     @SuppressWarnings("unchecked")
     @Override
     public EventExecutorChooser newChooser(EventExecutor[] executors) {
@@ -47,11 +44,9 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
     private static final class PowerOfTwoEventExecutorChooser implements EventExecutorChooser {
         private final AtomicInteger idx = new AtomicInteger();
         private final EventExecutor[] executors;
-
         PowerOfTwoEventExecutorChooser(EventExecutor[] executors) {
             this.executors = executors;
         }
-
         @Override
         public EventExecutor next() {
             return executors[idx.getAndIncrement() & executors.length - 1];
@@ -61,11 +56,9 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
     private static final class GenericEventExecutorChooser implements EventExecutorChooser {
         private final AtomicInteger idx = new AtomicInteger();
         private final EventExecutor[] executors;
-
         GenericEventExecutorChooser(EventExecutor[] executors) {
             this.executors = executors;
         }
-
         @Override
         public EventExecutor next() {
             return executors[Math.abs(idx.getAndIncrement() % executors.length)];

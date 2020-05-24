@@ -210,7 +210,6 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     }
 
     private static class ServerBootstrapAcceptor extends ChannelInboundHandlerAdapter {
-
         private final EventLoopGroup childGroup;
         private final ChannelHandler childHandler;
         private final Entry<ChannelOption<?>, Object>[] childOptions;
@@ -242,15 +241,14 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             final Channel child = (Channel) msg;
-
+            //添加ChildHandler
             child.pipeline().addLast(childHandler);
-
+            //设置SocketChannel的option和attr
             setChannelOptions(child, childOptions, logger);
-
             for (Entry<AttributeKey<?>, Object> e: childAttrs) {
                 child.attr((AttributeKey<Object>) e.getKey()).set(e.getValue());
             }
-
+            //将SocketChannel注册到childGroup
             try {
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override

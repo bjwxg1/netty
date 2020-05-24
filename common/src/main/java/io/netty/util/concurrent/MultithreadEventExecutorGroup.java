@@ -29,11 +29,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * the same time.
  */
 public abstract class MultithreadEventExecutorGroup extends AbstractEventExecutorGroup {
-
+    //内部维护的EventExecutor数组
     private final EventExecutor[] children;
     private final Set<EventExecutor> readonlyChildren;
+    //记录已经完成关闭的EventExecutor数量，在关闭的时候使用
     private final AtomicInteger terminatedChildren = new AtomicInteger();
+    //关闭时使用的Future
     private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventExecutor.INSTANCE);
+    //一个Chooser选择器，在Next()方法中使用，用于选出合适的EventExecutor
     private final EventExecutorChooserFactory.EventExecutorChooser chooser;
 
     /**
@@ -71,14 +74,12 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         if (nThreads <= 0) {
             throw new IllegalArgumentException(String.format("nThreads: %d (expected: > 0)", nThreads));
         }
-
         //设置executor，注意该excutor每次提交任务都新建线程执行任务
         if (executor == null) {
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
         //创建children数组
         children = new EventExecutor[nThreads];
-
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
@@ -94,7 +95,6 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                     for (int j = 0; j < i; j ++) {
                         children[j].shutdownGracefully();
                     }
-
                     for (int j = 0; j < i; j ++) {
                         EventExecutor e = children[j];
                         try {
@@ -114,7 +114,6 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
 
         //设置chooser
         chooser = chooserFactory.newChooser(children);
-
         //创建terminationListener
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
@@ -124,12 +123,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                 }
             }
         };
-
         //添加terminationListener
         for (EventExecutor e: children) {
             e.terminationFuture().addListener(terminationListener);
         }
-
         Set<EventExecutor> childrenSet = new LinkedHashSet<EventExecutor>(children.length);
         Collections.addAll(childrenSet, children);
         readonlyChildren = Collections.unmodifiableSet(childrenSet);

@@ -66,7 +66,6 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             final ChannelPipeline pipeline = pipeline();
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
-
             boolean closed = false;
             Throwable exception = null;
             try {

@@ -48,7 +48,7 @@ public final class EchoServer {
             sslCtx = null;
         }
 
-        // Configure the server.
+        //创建Boss线程池和Worker线程池
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         final EchoServerHandler serverHandler = new EchoServerHandler();
@@ -56,8 +56,11 @@ public final class EchoServer {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class)
+              //设置ServerSocketChannel配置
              .option(ChannelOption.SO_BACKLOG, 100)
+              //设置ServerSocketChannel中Pipeline的Handler
              .handler(new LoggingHandler(LogLevel.INFO))
+              //设置从ServerSocketChannel中Accept的SocketChannel的pipeLine的Handler
              .childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
@@ -65,18 +68,14 @@ public final class EchoServer {
                      if (sslCtx != null) {
                          p.addLast(sslCtx.newHandler(ch.alloc()));
                      }
-                     //p.addLast(new LoggingHandler(LogLevel.INFO));
                      p.addLast(serverHandler);
                  }
              });
-
-            // Start the server.
+            //绑定端口，开始监听
             ChannelFuture f = b.bind(PORT).sync();
-
-            // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
         } finally {
-            // Shut down all event loops to terminate all threads.
+            //优化关闭
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }

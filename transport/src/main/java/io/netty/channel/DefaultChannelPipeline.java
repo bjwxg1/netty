@@ -100,7 +100,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         //初始化Head和tail Context
         tail = new TailContext(this);
         head = new HeadContext(this);
-
         head.next = tail;
         tail.prev = head;
     }
@@ -209,10 +208,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            //判断是否已经添加过
             checkMultiplicity(handler);
-
+            //创建一个新的HandlerContext
             newCtx = newContext(group, filterName(name, handler), handler);
-
+            //添加到链上
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventloop yet.

@@ -37,12 +37,10 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
-
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
     //context的两个指针
     volatile AbstractChannelHandlerContext next;
     volatile AbstractChannelHandlerContext prev;
-
     private static final AtomicIntegerFieldUpdater<AbstractChannelHandlerContext> HANDLER_STATE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(AbstractChannelHandlerContext.class, "handlerState");
 
