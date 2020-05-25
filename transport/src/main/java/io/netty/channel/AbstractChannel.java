@@ -882,7 +882,6 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             int size;
             try {
-                //将普通的HeapByteBuf转为DirectByteBuf
                 msg = filterOutboundMessage(msg);
                 size = pipeline.estimatorHandle().size(msg);
                 if (size < 0) {
@@ -893,25 +892,23 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 ReferenceCountUtil.release(msg);
                 return;
             }
-
             outboundBuffer.addMessage(msg, size, promise);
         }
 
         @Override
         public final void flush() {
             assertEventLoop();
-
             ChannelOutboundBuffer outboundBuffer = this.outboundBuffer;
             if (outboundBuffer == null) {
                 return;
             }
-
             outboundBuffer.addFlush();
             flush0();
         }
 
         @SuppressWarnings("deprecation")
         protected void flush0() {
+            //判断inFlush0是否为true，不能重复进入调用
             if (inFlush0) {
                 // Avoid re-entrance
                 return;
@@ -923,8 +920,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             inFlush0 = true;
-
             // Mark all pending write requests as failure if the channel is inactive.
+            //如果连接不可能，删除所有的Entry
             if (!isActive()) {
                 try {
                     if (isOpen()) {
@@ -940,6 +937,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             try {
+                //将outboundBuffer中的数据刷新到JavaChannel
                 doWrite(outboundBuffer);
             } catch (Throwable t) {
                 if (t instanceof IOException && config().isAutoClose()) {

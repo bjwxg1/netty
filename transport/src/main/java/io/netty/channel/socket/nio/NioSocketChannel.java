@@ -381,6 +381,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
         do {
             if (in.isEmpty()) {
                 // All written so clear OP_WRITE
+                //所有数据都已经写入到底层Socket，清除OP_WRITE标识
                 clearOpWrite();
                 // Directly return here so incompleteWrite(...) is not called.
                 return;
@@ -388,6 +389,8 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
 
             // Ensure the pending writes are made of ByteBufs only.
             int maxBytesPerGatheringWrite = ((NioSocketChannelConfig) config).getMaxBytesPerGatheringWrite();
+
+            //将ChannelOutBoundBuffer中已近flushed的Entry的消息添加到一个ByteBuffer数组返回
             ByteBuffer[] nioBuffers = in.nioBuffers(1024, maxBytesPerGatheringWrite);
             int nioBufferCnt = in.nioBufferCount();
 
@@ -404,12 +407,16 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     // to check if the total size of all the buffers is non-zero.
                     ByteBuffer buffer = nioBuffers[0];
                     int attemptedBytes = buffer.remaining();
+                    //将buffer中的数据写入到JavaChannel
                     final int localWrittenBytes = ch.write(buffer);
+                    //如果写入的数据小于0，说明系统的写入缓冲区没有空间可用，所有要注册OP_WRITE时间;
                     if (localWrittenBytes <= 0) {
                         incompleteWrite(true);
                         return;
                     }
+                    //TODO
                     adjustMaxBytesPerGatheringWrite(attemptedBytes, localWrittenBytes, maxBytesPerGatheringWrite);
+                    //移除ChannelOutboundBuffer已经读取的数据
                     in.removeBytes(localWrittenBytes);
                     --writeSpinCount;
                     break;
@@ -419,6 +426,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     // to check if the total size of all the buffers is non-zero.
                     // We limit the max amount to int above so cast is safe
                     long attemptedBytes = in.nioBufferSize();
+                    //将NioBuffer中的数据写入到JavaChannel
                     final long localWrittenBytes = ch.write(nioBuffers, 0, nioBufferCnt);
                     if (localWrittenBytes <= 0) {
                         incompleteWrite(true);
@@ -434,6 +442,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
             }
         } while (writeSpinCount > 0);
 
+        //调用
         incompleteWrite(writeSpinCount < 0);
     }
 

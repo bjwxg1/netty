@@ -265,7 +265,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 //判断cumulation==null;如果为真说明第一次读取数据
                 first = cumulation == null;
                 if (first) {
-                    //给cumulation复制
+                    //给cumulation赋值，cumulation也是一个ByteBuf
                     cumulation = data;
                 } else {
                     //将msg追加到原有的cumulation
@@ -422,7 +422,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             //如果ByteBuf可读，循环进行操作
             while (in.isReadable()) {
                 int outSize = out.size();
-                //如果outSize大于0，说明已经有decode出了信息
+                //如果outSize大于0，说明已经有decode出了信息，可以出出发续操作
                 if (outSize > 0) {
                     fireChannelRead(ctx, out, outSize);
                     out.clear();

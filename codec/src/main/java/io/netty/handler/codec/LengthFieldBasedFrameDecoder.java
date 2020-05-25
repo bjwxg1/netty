@@ -188,7 +188,7 @@ public class LengthFieldBasedFrameDecoder extends ByteToMessageDecoder {
     private final int maxFrameLength;
     //lengthField相对于报文开始位置的偏移量；[单位字节]
     private final int lengthFieldOffset;
-    ////lengthField占用的字节数;【默认情况lengthFiled为msg body的长度】，如果需要处理整个报文需要和
+    //lengthField占用的字节数;【默认情况lengthFiled为msg body的长度】，如果需要处理整个报文需要和
     private final int lengthFieldLength;
     private final int lengthFieldEndOffset;
     //添加到长度字段的补偿值
@@ -415,7 +415,7 @@ public class LengthFieldBasedFrameDecoder extends ByteToMessageDecoder {
             discardingTooLongFrame(in);
         }
 
-        //可读的字节数小于lengthFieldEndOffset。返回
+        //可读的字节数小于lengthFieldEndOffset，说明可读的字节数不足以解析一个对象，直接返回NULL
         if (in.readableBytes() < lengthFieldEndOffset) {
             return null;
         }
@@ -437,7 +437,7 @@ public class LengthFieldBasedFrameDecoder extends ByteToMessageDecoder {
             failOnFrameLengthLessThanLengthFieldEndOffset(in, frameLength, lengthFieldEndOffset);
         }
 
-        //超长处理
+        //超长报文处理[通常是直接抛弃]
         if (frameLength > maxFrameLength) {
             exceededFrameLength(in, frameLength);
             return null;

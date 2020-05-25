@@ -82,7 +82,7 @@ public final class ChannelOutboundBuffer {
     //OutBoundBuffer中第一个未被被flush的元素
     private Entry unflushedEntry;
     //The Entry which represents the tail of the buffer
-    //utBoundBuffer中尾部元素
+    //outBoundBuffer中尾部元素
     private Entry tailEntry;
     // The number of flushed entries that are not written yet
     //已经flush但没有有写入到socket的元素
@@ -393,6 +393,7 @@ public final class ChannelOutboundBuffer {
      *                 value maybe exceeded because we make a best effort to include at least 1 {@link ByteBuffer}
      *                 in the return value to ensure write progress is made.
      */
+    //maxCount指定了返回的ByteBuffer数组的最大长度，maxBytes指定了ByteBuffer[]包含的最大字节数
     public ByteBuffer[] nioBuffers(int maxCount, long maxBytes) {
         assert maxCount > 0;
         assert maxBytes > 0;
@@ -401,13 +402,16 @@ public final class ChannelOutboundBuffer {
         final InternalThreadLocalMap threadLocalMap = InternalThreadLocalMap.get();
         ByteBuffer[] nioBuffers = NIO_BUFFERS.get(threadLocalMap);
         Entry entry = flushedEntry;
+        //循环所有的FlushedEntry进行操作
         while (isFlushedEntry(entry) && entry.msg instanceof ByteBuf) {
             if (!entry.cancelled) {
                 ByteBuf buf = (ByteBuf) entry.msg;
                 final int readerIndex = buf.readerIndex();
+                //获取entry内可读的字节数
                 final int readableBytes = buf.writerIndex() - readerIndex;
 
                 if (readableBytes > 0) {
+                    //如果nioBufferSize+readableBytes>maxBytes,并且nioBufferCount！=0，跳出循环
                     if (maxBytes - readableBytes < nioBufferSize && nioBufferCount != 0) {
                         // If the nioBufferSize + readableBytes will overflow maxBytes, and there is at least one entry
                         // we stop populate the ByteBuffer array. This is done for 2 reasons:
@@ -429,6 +433,7 @@ public final class ChannelOutboundBuffer {
                         entry.count = count = buf.nioBufferCount();
                     }
                     int neededSpace = min(maxCount, nioBufferCount + count);
+                    //如果neededSpace > nioBuffers.length，进行扩容
                     if (neededSpace > nioBuffers.length) {
                         nioBuffers = expandNioBufferArray(nioBuffers, neededSpace, nioBufferCount);
                         NIO_BUFFERS.set(threadLocalMap, nioBuffers);

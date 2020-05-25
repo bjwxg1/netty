@@ -66,6 +66,7 @@ public class FactorialClientHandler extends SimpleChannelInboundHandler<BigInteg
         receivedMessages ++;
         if (receivedMessages == FactorialClient.COUNT) {
             // Offer the answer after closing the connection.
+
             ctx.channel().close().addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) {

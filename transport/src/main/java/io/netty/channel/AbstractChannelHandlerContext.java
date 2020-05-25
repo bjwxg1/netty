@@ -806,6 +806,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     }
 
     private void write(Object msg, boolean flush, ChannelPromise promise) {
+        //获取前置的OutBoundHandler
         AbstractChannelHandlerContext next = findContextOutbound();
         final Object m = pipeline.touch(msg, next);
         EventExecutor executor = next.executor();
@@ -813,6 +814,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             if (flush) {
                 next.invokeWriteAndFlush(m, promise);
             } else {
+                //调用invokeWrite方法
                 next.invokeWrite(m, promise);
             }
         } else {

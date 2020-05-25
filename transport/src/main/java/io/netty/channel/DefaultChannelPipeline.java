@@ -1330,7 +1330,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     //HeadContext
-    final class HeadContext extends AbstractChannelHandlerContext
+    final class
+    HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 
         private final Unsafe unsafe;

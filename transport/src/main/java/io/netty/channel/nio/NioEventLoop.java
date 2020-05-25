@@ -736,7 +736,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         try {
             return selector.selectNow();
         } finally {
-            // restore wakeup state if needed
+            //判断是否需要换线selector，如果是，则进行唤醒
             if (wakenUp.get()) {
                 selector.wakeup();
             }
@@ -748,11 +748,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         try {
             int selectCnt = 0;
             long currentTimeNanos = System.nanoTime();
-            //delayNanos:计算延迟任务队列中第一个任务的到期执行时间（即最晚还能延迟执行的时间）
+            //delayNanos:计算延迟任务队列中第一个任务的到期执行时间(下次执行时间)
             long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);
 
             for (;;) {
-                //当前时间时间距离最近的到期执行时间不足500000纳秒则立即执行一次selectNow操作，并立即返回
+                //当前时间距离最近的到期执行时间不足500000纳秒则立即执行一次selectNow()操作，并立即返回
                 long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L;
                 if (timeoutMillis <= 0) {
                     if (selectCnt == 0) {
@@ -766,6 +766,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 // Selector#wakeup. So we need to check task queue again before executing select operation.
                 // If we don't, the task might be pended until select operation was timed out.
                 // It might be pended until idle timeout if IdleStateHandler existed in pipeline.
+                //如果有任务在value为true的时候提交
                 //判断任务队列是否有任务需要执行：有，则进行selectorNow();
                 if (hasTasks() && wakenUp.compareAndSet(false, true)) {
                     selector.selectNow();
