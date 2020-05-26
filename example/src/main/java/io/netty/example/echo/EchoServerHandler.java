@@ -15,20 +15,33 @@
  */
 package io.netty.example.echo;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Handler implementation for the echo server.
  */
 @Sharable
 public class EchoServerHandler extends ChannelInboundHandlerAdapter {
-
+    private ThreadPoolExecutor businessExecutor;
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-      //  ctx.pipeline().write(msg);
-        ctx.write(msg);
+    public void channelRead(final ChannelHandlerContext ctx, Object msg) {
+        final Object obj = msg;
+        businessExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                ByteBuf byteBuf = (ByteBuf) obj;
+                ByteBuf resp = null;
+                //resp = doSomething(byteBuf);
+                ctx.writeAndFlush(resp);
+            }
+        });
     }
 
     @Override

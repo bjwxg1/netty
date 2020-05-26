@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
-
+    //使用数组实现SET
     SelectionKey[] keys;
     int size;
 

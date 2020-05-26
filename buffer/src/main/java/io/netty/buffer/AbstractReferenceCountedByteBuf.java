@@ -31,7 +31,6 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
             AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
 
     private volatile int refCnt;
-
     protected AbstractReferenceCountedByteBuf(int maxCapacity) {
         super(maxCapacity);
         refCntUpdater.set(this, 1);
@@ -61,8 +60,9 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
 
     private ByteBuf retain0(final int increment) {
         int oldRef = refCntUpdater.getAndAdd(this, increment);
+        //oldRef<=0或者oldRef + increment < oldRef说明对象已经被回收
         if (oldRef <= 0 || oldRef + increment < oldRef) {
-            // Ensure we don't resurrect (which means the refCnt was 0) and also that we encountered an overflow.
+            //恢复到更新前状态
             refCntUpdater.getAndAdd(this, -increment);
             throw new IllegalReferenceCountException(oldRef, increment);
         }
@@ -92,9 +92,11 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
     private boolean release0(int decrement) {
         int oldRef = refCntUpdater.getAndAdd(this, -decrement);
         if (oldRef == decrement) {
+            //引用计数为0，进行回收
             deallocate();
             return true;
         } else if (oldRef < decrement || oldRef - decrement > oldRef) {
+            //oldRef < decrement,说明更新后计数器小于0。所以恢复到更新前状态，抛出异常
             // Ensure we don't over-release, and avoid underflow.
             refCntUpdater.getAndAdd(this, decrement);
             throw new IllegalReferenceCountException(oldRef, -decrement);

@@ -774,7 +774,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     break;
                 }
 
-                //进行一次阻塞的select()操作
+                //进行一次阻塞的select()操作.阻塞时间是到定时任务队列执行时间截止；
+                //如果定时任务的延时比较长，此处可能导致select()阻塞比较长时间
+                //此处会不会阻塞添加的task呢？ 不会，因为添加task的时候会wakeup
                 int selectedKeys = selector.select(timeoutMillis);
                 selectCnt ++;
 
@@ -804,11 +806,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 }
 
                 long time = System.nanoTime();
+                //time - TimeUnit.MILLISECONDS.toNanos(timeoutMillis) >= currentTimeNanos说明是一次有效的轮训，
+                //否则，标明阻塞时间不够，可能触发了JDK空轮训BUG，当超过阈值则进行重建
                 if (time - TimeUnit.MILLISECONDS.toNanos(timeoutMillis) >= currentTimeNanos) {
                     // timeoutMillis elapsed without anything selected.
                     selectCnt = 1;
                 }
-
                 else if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
                         selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
                     // The selector returned prematurely many times in a row.

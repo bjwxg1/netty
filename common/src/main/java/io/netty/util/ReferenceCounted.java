@@ -29,6 +29,8 @@ package io.netty.util;
  * reference count becomes 0.
  * </p>
  */
+//引用计数器。初始化ReferenceCounted时，count为1.retain()方法会增加引用技术；release方法将降低引用计数
+//如果引用计数被减到0，则这个对象就将被显式的回收，此时再来访问该对象则会抛出IllegalReferenceCountException异常。
 public interface ReferenceCounted {
     /**
      * Returns the reference count of this object.  If {@code 0}, it means this object has been deallocated.
