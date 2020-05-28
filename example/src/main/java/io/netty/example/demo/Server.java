@@ -1,4 +1,4 @@
-package io.netty.example.Demo;
+package io.netty.example.demo;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -43,7 +43,8 @@ public class Server {
                     //设置获取的SocketChannel的Handler
                     .childHandler(childHandlers)
                     //设置获取的SocketChannel的配置
-                    .childOption(ChannelOption.TCP_NODELAY,true);
+                    .childOption(ChannelOption.TCP_NODELAY,true).
+                    childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,1024*64);
 
             ChannelFuture f = b.bind(PORT).sync();
             f.channel().closeFuture().sync();

@@ -1,8 +1,7 @@
-package io.netty.example.Demo;
+package io.netty.example.demo;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.internal.StringUtil;
 
