@@ -17,9 +17,9 @@ public class ClientDemo {
                 Client.sendMsg(new Msg(msg));
                 i++;
                 System.out.println(i);
-               // break;
+                break;
             }
         }
-        //Thread.sleep(100000);
+        Thread.sleep(100000);
     }
 }

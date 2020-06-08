@@ -1,10 +1,16 @@
 package io.netty.example.demo;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+@ChannelHandler.Sharable
 public class ServerBusinessHandler extends ChannelInboundHandlerAdapter {
     static final String MODULE_NAME = "[Sever]:";
+
+    public ServerBusinessHandler() {
+        System.err.println("ServerBusinessHandler Init:" + System.currentTimeMillis());
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {

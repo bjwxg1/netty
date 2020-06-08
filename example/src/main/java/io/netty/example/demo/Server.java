@@ -13,13 +13,14 @@ public class Server {
     //创建ChannelInitializer,用于初始化NioSocketChannel的Pipeline
     //每一个Channel都会有自己的ChannelPipeline。Channel的子接口在ChannelPipeline上传递完成业务处理
     //ChannelHandler分为InBoundHandler和OutBoundHandler
+    static final DefaultEventLoopGroup businessWorkes = new DefaultEventLoopGroup(16);
     static final ChannelInitializer childHandlers = new ChannelInitializer() {
         @Override
         protected void initChannel(Channel ch) throws Exception {
             ChannelPipeline p = ch.pipeline();
-            p.addLast(new MsgDecode(Integer.MAX_VALUE,0,4));
-            p.addLast(new MsgEncode());
-            p.addLast(new ServerBusinessHandler());
+            p.addLast(businessWorkes, new MsgDecode(Integer.MAX_VALUE, 0, 4));
+            p.addLast(businessWorkes, new MsgEncode());
+            p.addLast(businessWorkes, new ServerBusinessHandler());
         }
     };
 
